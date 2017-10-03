@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Create a lambda function to replicate data from a DynamoDB stream to
+  another table.
+
+Parameters:
+  CodeBucketName:
+    Type: String
+    Description: Bucket containing lambda code zip file
+  ZipFileName:
+    Type: String
+    Default: replicator.zip
+  StreamArn:
+    Type: String
+    Description: StreamArn to consume events from
+  TableName:
+    Type: String
+    Description: Name of table generating stream events
+  DestinationTable:
+    Type: String
+    Description: Destination table
+  DestinationRegion:
+    Type: String
+    Description: Region containing destination table
+
+
+Resources:
+  S2FQLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: Replicator.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref CodeBucketName
+        S3Key: !Ref ZipFileName
+      Runtime: "python2.7"
+ 
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - edgelambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: logs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            Resource: arn:aws:logs:*:*:*
+      - PolicyName: streams
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:DescribeStream
+            - dynamodb:GetRecords
+            - dynamodb:GetShardIterator
+            - dynamodb:ListStreams
+            Resource: !Join [ '', ['arn:aws:dynamodb:', !Ref 'AWS::Region' , ':', !Ref 'AWS::AccountId', ':table/', !Ref 'TableName', '/stream/*']]
+      - PolicyName: tablewrite
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:DescribeTable
+            Resource: !Join [ '', ['arn:aws:dynamodb:', !Ref 'DestinationRegion' , ':', !Ref 'AWS::AccountId', ':table/', !Ref 'DestinationTable']]
+      - PolicyName: metrics
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - cloudwatch:PutMetricData
+            Resource: '*'
+
+          
+
+  EventSourceMapping:
+    Type: "AWS::Lambda::EventSourceMapping"
+    Properties:
+      BatchSize: 25
+      Enabled: True
+      EventSourceArn: !Ref StreamArn
+      FunctionName: !GetAtt S2FQLambda.Arn
+      StartingPosition: TRIM_HORIZON
+
