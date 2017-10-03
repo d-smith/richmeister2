@@ -1,3 +1,10 @@
+def replicate_this(event):
+    if event['eventName'] != 'REMOVE' and not ('replicate' in event['dynamodb']['NewImage']):
+        return False
+    else:
+        return True
+        
+
 def lambda_handler(event, context):
     print 'event: {}'.format(event)
     print 'context: {}'.format(context)
@@ -6,8 +13,8 @@ def lambda_handler(event, context):
     for r in event_records:
         print 'event name: {}'.format(r['eventName'])
         
-        if r['eventName'] != 'REMOVE' and not ('replicate' in r['dynamodb']['NewImage']):
-            print '--> replication not indicated'
+        if(not replicate_this(r)):
+            print '---> replication not indicated'
             continue
         
-        print '--> replicate'
+        print 'replicate'
