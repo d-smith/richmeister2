@@ -147,9 +147,8 @@ def remove(body):
    
 
 
-def process_body(msg):
-    print 'handle {}'.format(msg)
-    body = json.loads(msg)
+def process_body(body):
+    print 'replicate {}'.format(body)
 
     opcode = body['opcode']
 
@@ -195,15 +194,14 @@ def event_to_body_ctx(record):
 
 def lambda_handler(event, context):
     print 'event: {}'.format(event)
-    print 'context: {}'.format(context)
     
     event_records = event['Records']
     for r in event_records:
-        print 'event name: {}'.format(r['eventName'])
         
         if(not replicate_this(r)):
-            print '---> replication not indicated'
+            print 'replication not indicated'
             continue
         
         ctx = event_to_body_ctx(r)
-        print 'replicate with ctx {}'.format(ctx)
+        print 'replicate'
+        process_body(ctx)
