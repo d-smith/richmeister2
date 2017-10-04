@@ -1,0 +1,38 @@
+pip install locustio
+
+Use the web ui to drive - set up the stacks using the partition key
+set up, then verify the inserts done in the east show up in the
+west.
+
+locust -f simple.py
+
+aws dynamodb scan --table-name PKTestTable --select "COUNT"
+aws dynamodb scan --table-name PKTestTable --select "COUNT" --region us-west-2
+
+
+Observations
+
+20171004
+
+error modes - function timeout before processing all the records ->
+function gets called again with same set of records
+
+25 locust users, did aboout 10,000 inserts
+
+1st check in on east:
+
+{
+    "Count": 10107, 
+    "ScannedCount": 10107, 
+    "ConsumedCapacity": null
+}
+
+West was at:
+
+{
+    "Count": 5543, 
+    "ScannedCount": 5543, 
+    "ConsumedCapacity": null
+}
+
+The current approach is bottle necked - need to find a way to introduce some concurrency.

@@ -196,6 +196,7 @@ def lambda_handler(event, context):
     print 'event: {}'.format(event)
     
     event_records = event['Records']
+    print 'function called with {} records'.format(len(event_records))
     for r in event_records:
         
         if(not replicate_this(r)):

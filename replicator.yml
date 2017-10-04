@@ -34,6 +34,8 @@ Resources:
         S3Bucket: !Ref CodeBucketName
         S3Key: !Ref ZipFileName
       Runtime: "python2.7"
+      MemorySize: 512
+      Timeout: 20
       Environment:
         Variables:
           DEST_TABLE: !Ref DestinationTable
