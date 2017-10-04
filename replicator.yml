@@ -34,6 +34,12 @@ Resources:
         S3Bucket: !Ref CodeBucketName
         S3Key: !Ref ZipFileName
       Runtime: "python2.7"
+      Environment:
+        Variables:
+          DEST_TABLE: !Ref DestinationTable
+          DEST_REGION: !Ref DestinationRegion
+          STACK_NAME: !Ref AWS::StackName
+
  
   LambdaExecutionRole:
     Type: AWS::IAM::Role
