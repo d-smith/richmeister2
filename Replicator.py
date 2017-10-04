@@ -176,11 +176,19 @@ def event_to_body_ctx(record):
     ddbCtx['timestamp'] = to_timestamp(now)
     ddbCtx['opcode'] = record['eventName']
     ddbCtx['keys'] = record['dynamodb']['Keys']
-    if 'newImage' in record['dynamodb']:
+    if 'NewImage' in record['dynamodb']:
         ddbCtx['newImage'] = record['dynamodb']['NewImage']
-    if 'oldImage' in record['dynamodb']:
+    if 'OldImage' in record['dynamodb']:
         ddbCtx['oldImage'] = record['dynamodb']['OldImage']
     ddbCtx['writeId'] = str(uuid.uuid4())
+
+    # Important: we need to remove the replicate property, otherwise
+    # when we update remote copies, they would replicate it back to use. 
+    # The cycle would be broken by the merge conflict detection,
+    # but we want o eliminate the extra processing and cost up 
+    # front when possible.
+    if 'newImage' in ddbCtx:
+        ddbCtx['newImage'].pop('replicate',None)
 
     return ddbCtx
 
