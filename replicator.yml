@@ -34,7 +34,7 @@ Resources:
         S3Bucket: !Ref CodeBucketName
         S3Key: !Ref ZipFileName
       Runtime: "python2.7"
-      MemorySize: 512
+      MemorySize: 1024
       Timeout: 20
       Environment:
         Variables:

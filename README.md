@@ -30,3 +30,8 @@ replicate is true, the data is replicated, subject to the conflict resolution cr
 For conflict resolution, the latest timestamp will be the winner, and if timestamps are identical, the write ids are compared to select the write. 
 
 The components can be installed using the provided cloud formation templates. Refer to the [jupyter](http://jupyter.org/) notebook in the testing directory to see what a multiregion set up looks like, and to view the test cases illustrating how conflict resolution works.
+
+## Current Performance Limitations
+
+Current implementation (Python) falls behind in the replication from us-east-1 to us-west-2 
+at around 5 write/s on the primary side.
