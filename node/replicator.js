@@ -3,8 +3,15 @@ var AWS = require('aws-sdk');
 let numRecords = 0;
 let processed = 0;
 
-const handle_event = (event,callback) => {
-    console.log('handle the event');
+const handleRecord = (record,callback) => {
+    console.log('handle the record');
+    
+    if(record.eventName != 'REMOVE' && record.dynamodb.NewImage.replicate == undefined) {
+            console.log('Replication not indicated',record.dynamodb.Keys)
+    } else {
+        console.log('replicate');
+    }
+    
     processed += 1;
     if(processed == numRecords) {
         allProcessed(callback);
@@ -17,13 +24,12 @@ const allProcessed = (callback) => {
 }
 
 exports.handler = (event, context, callback) => {
-    console.log("Yay!");
 
     numRecords = event.Records.length;
 
     for (let record of event.Records) {
-        console.log('event');
-        handle_event(event,callback);
+        console.log(event);
+        handleRecord(record,callback);
     }
 
     
