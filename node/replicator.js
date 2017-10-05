@@ -1,5 +1,11 @@
 var AWS = require('aws-sdk');
 
+const destinationTable = process.env.DEST_TABLE;
+const destinationRegion = process.env.DEST_REGION;
+const hashAttribute = process.env.HASH_ATTRIBUTE;
+
+var dynamoDb = new AWS.DynamoDB({region: destinationRegion});
+
 let numRecords = 0;
 let processed = 0;
 
@@ -8,7 +14,7 @@ const handleRecord = (record,callback) => {
     
     if(record.eventName != 'REMOVE' && record.dynamodb.NewImage.replicate == undefined) {
             console.log('Replication not indicated',record.dynamodb.Keys)
-            checkDone(context);
+            checkDone(callback);
     } else {
         console.log('replicate');
         replicateRecord(record, callback);
@@ -70,7 +76,30 @@ const replicateRecord = (record, callback) => {
 
 const doInsert = (record, callback) => {
     console.log('replicate insert');
-    checkDone(callback);
+
+    const newImage = record.dynamodb.NewImage;
+    const ts = newImage.ts;
+    const wid = newImage.wid;
+
+    const conditionExpression = `attribute_not_exists(${hashAttribute}) OR ((:ts > ts) OR (:ts = ts AND :wid > wid))`
+
+    const params = {
+        TableName: destinationTable,
+        Item: newImage,
+        ConditionExpression: conditionExpression,
+        ExpressionAttributeValues: {
+            ':ts': ts,
+            ':wid': wid
+        }
+    };
+
+    dynamoDb.putItem(params, (error) => {
+        if (error) {
+            console.error(error);
+        }
+
+        checkDone(callback);
+    });
 }
 
 const doModify = (record, callback) => {
