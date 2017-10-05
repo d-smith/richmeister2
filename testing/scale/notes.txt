@@ -57,6 +57,47 @@ Inserts us-east     Records west
 
 Lambda - batch size 25, mem 512, timeout 20s
 
-Write were ~ 8.3 TPS, replication ~ 5 TPS
+Write were ~ 8.3 TPS (25 locust clients), replication ~ 5 TPS
 
 Double write cap on the DDB tables did not alter stream throughput
+
+Set cap to 10 write/5 read
+
+13 client - here the replication keeps up with writes at 4.1 TPS. West count is higher as I had to change
+windows and execute a scan for the count
+
+east west 
+500 519
+1000 1019
+1500 1510
+
+16 clients - replication keeps up, writes at 5.15 TPS
+
+500/515
+1000/1006
+1500/1509
+
+20 clients - write tps ~ 6.25 TPS - can't keep up
+
+500/261
+1000/644
+1500/998
+
+Boost write cap to 20, read at 5
+
+20 clients - write tps ~ 6.25 - again we see the replication bottle necked at
+~ 5.5 TPS
+
+500/414
+1000/817
+1500/1250
+
+Can increasing the lambda resources change this? Same as above but go from
+512 MB to 1024 (20 clients ~6.25 writes/s)
+
+500/411
+1000/808
+1500/1221
+
+Single threaded lambda probably the bottle neck - next up: try node impl with some concurrency
+
