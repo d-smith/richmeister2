@@ -76,12 +76,16 @@ const replicateRecord = (record, callback) => {
 
 const doInsert = (record, callback) => {
     console.log('replicate insert');
+    console.log(JSON.stringify(record));
 
     const newImage = record.dynamodb.NewImage;
     const ts = newImage.ts;
     const wid = newImage.wid;
 
     const conditionExpression = `attribute_not_exists(${hashAttribute}) OR ((:ts > ts) OR (:ts = ts AND :wid > wid))`
+    const expressionAttributeValues = {":ts":ts, ":wid": wid};
+
+    console.log(JSON.stringify(expressionAttributeValues))
 
     const params = {
         TableName: destinationTable,
@@ -95,7 +99,11 @@ const doInsert = (record, callback) => {
 
     dynamoDb.putItem(params, (error) => {
         if (error) {
-            console.error(error);
+            if(error.code == 'ConditionalCheckFailedException') {
+                console.log('Item not replicated due to ConditionalCheckFailedException')
+            } else {
+                console.error(error);
+            }
         }
 
         checkDone(callback);

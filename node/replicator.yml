@@ -53,7 +53,7 @@ Resources:
           DEST_TABLE: !Ref DestinationTable
           DEST_REGION: !Ref DestinationRegion
           STACK_NAME: !Ref AWS::StackName
-          HASH_ATTRIBUTE: !Ref AWS::StackName
+          HASH_ATTRIBUTE: !Ref KeyHashAttribute
 
  
   LambdaExecutionRole:
