@@ -36,3 +36,27 @@ West was at:
 }
 
 The current approach is bottle necked - need to find a way to introduce some concurrency.
+
+20171005
+
+Read cap 5, write cap 10
+
+Inserts us-east     Records west
+
+1000                679
+2000                1288
+3000                2003
+4000                2655
+5000                3371
+
++30s                3536 (inserts us-east stopped)
++60s                3711
++2m                 4061
++3m                 4738
++4m                 5055
+
+Lambda - batch size 25, mem 512, timeout 20s
+
+Write were ~ 8.3 TPS, replication ~ 5 TPS
+
+Double write cap on the DDB tables did not alter stream throughput
