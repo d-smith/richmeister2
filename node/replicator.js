@@ -30,7 +30,33 @@ const checkDone = (callback) => {
 }
 
 const replicateRecord = (record, callback) => {
-    if (record.eventName == 'INSERT') {
+    let continueReplication = true;
+
+    //Is replication indicated? Note we can only check on
+    //inserts and updates as there is no way to inject replication
+    //context on delete
+    let image = record.dynamodb.NewImage;
+    if (record.eventName == 'REMOVE') {
+        image = record.dynamodb.OldImage
+    }
+    
+    if (image.ts == undefined || image.wid == undefined) {
+        console.log('Replication requested but ts and/or wid fields not present', image);
+        continueReplication = false;
+    }
+
+    //Important: we need to remove the replicate property, otherwise when
+    //we update remote copies, they would replicate it back to use. The
+    //cycle would be broken by the merge conflict detection, but we want
+    //to eliminate the extra processing and cost up front when possible.
+    if (record.dynamodb.NewImage !== undefined) {
+        delete record.dynamodb.NewImage.replicate;
+    }
+
+
+    if(continueReplication == false) {
+        checkDone(callback);
+    } else if(record.eventName == 'INSERT') {
         doInsert(record, callback);
     } else if (record.eventName == 'MODIFY') {
         doModify(record, callback);
