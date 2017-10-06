@@ -14,6 +14,40 @@ Observations
 
 20171006
 
+Python version - eliminated call to describe_table to get hash attribute name, which
+increase scale
+
+Write cap: 20
+Read cap: 10
+Memory size: 512
+Batch size: 20
+Timeout: 20
+
+See notes below to get a read on write/s associated with number of clients
+
+15 clients
+
+east/west
+250/258
+500/508
+750/756
+
+20 clients
+
+east/west
+500/505
+750/757
+1000/1006
+
+30 clients
+
+east/west
+500/448
+1000/910
+1500/1373
+
+20171006
+
 Node version much better but I noticed a potential perf inhibitor in the 
 python impl which will be addressed later.
 
