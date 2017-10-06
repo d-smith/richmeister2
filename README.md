@@ -33,5 +33,9 @@ The components can be installed using the provided cloud formation templates. Re
 
 ## Current Performance Limitations
 
+Current node implementation should be good for at least 20 TPS - testing at 47TPS showed a 
+bottle neck - need to switch from put item to batch write item (stay tuned)
+
 Current implementation (Python) falls behind in the replication from us-east-1 to us-west-2 
-at around 5 write/s on the primary side.
+at around 5 write/s on the primary side, but this is calling describe table on every write -
+will fix and retest (stay tuned)

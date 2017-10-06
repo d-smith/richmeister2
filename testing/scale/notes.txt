@@ -12,30 +12,61 @@ aws dynamodb scan --table-name PKTestTable --select "COUNT" --region us-west-2
 
 Observations
 
-20171004
+20171006
 
-error modes - function timeout before processing all the records ->
-function gets called again with same set of records
+Node version much better but I noticed a potential perf inhibitor in the 
+python impl which will be addressed later.
 
-25 locust users, did aboout 10,000 inserts
+Also note instead of put item we should try batch write item so stay tuned for that.
 
-1st check in on east:
+Write cap: 20
+Read cap: 10
+Memory size: 512
+Batch size: 20
+Timeout: 20
 
-{
-    "Count": 10107, 
-    "ScannedCount": 10107, 
-    "ConsumedCapacity": null
-}
+Node 5 users 1.6 TPS
+east/west
+250/253
+500/500
+...
 
-West was at:
+Node 10 users 3.21 TPS
+east/west
+250/255
+500/507
 
-{
-    "Count": 5543, 
-    "ScannedCount": 5543, 
-    "ConsumedCapacity": null
-}
+Node 15 users 4.8 TPS
+east/west
+250/260
+500/507
 
-The current approach is bottle necked - need to find a way to introduce some concurrency.
+Node 20 users
+east/west
+500/506
+1000/1003
+1500/1508
+
+Node 25 users 7.9 TPS
+east/west
+500/504
+1000/1010
+1500/1508
+
+Node 50 users 16.7 TPS
+east/west
+500/525
+1000/1012
+1500/1522
+2000/2028
+
+Node 70 users 22 TPS - note: went over write cap should be sustainable but reset ddb capacity
+east/west
+500/526
+1000/1038
+1500/1531
+2000/2079
+
 
 20171005
 
@@ -101,3 +132,27 @@ Can increasing the lambda resources change this? Same as above but go from
 
 Single threaded lambda probably the bottle neck - next up: try node impl with some concurrency
 
+20171004
+
+error modes - function timeout before processing all the records ->
+function gets called again with same set of records
+
+25 locust users, did aboout 10,000 inserts
+
+1st check in on east:
+
+{
+    "Count": 10107, 
+    "ScannedCount": 10107, 
+    "ConsumedCapacity": null
+}
+
+West was at:
+
+{
+    "Count": 5543, 
+    "ScannedCount": 5543, 
+    "ConsumedCapacity": null
+}
+
+The current approach is bottle necked - need to find a way to introduce some concurrency.
