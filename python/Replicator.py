@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 dest_table = os.environ['DEST_TABLE']
 dest_region = os.environ['DEST_REGION']
 stack_name = os.environ['STACK_NAME']
+hash_attribute = os.environ['HASH_ATTRIBUTE']
 
 # Use metric namespace unique to the stack
 metric_namespace = 'XtRepl' + stack_name
@@ -20,7 +21,7 @@ ddb = boto3.client('dynamodb',region_name=dest_region)
 cw = boto3.client('cloudwatch')
 
 def pub_statistic(name):
-    response = cw.put_metric_data(
+    cw.put_metric_data(
             Namespace=metric_namespace,
             MetricData=[
                 {
@@ -37,24 +38,12 @@ def pub_statistic(name):
                 }
             ]
         )
-    print response
 
 
-def hash_attribute(table_name):
-    response = ddb.describe_table(
-        TableName=table_name
-    )
-    
-    table = response['Table']
-    keySchema = table['KeySchema']
-    
-    for keyAttr in keySchema:
-        if keyAttr['KeyType'] == 'HASH':
-            return keyAttr['AttributeName']
 
-def id_not_exists_condition(table_name):
-    hash_attr = hash_attribute(table_name)
-    return 'attribute_not_exists({})'.format(hash_attr)
+
+def id_not_exists_condition():
+    return 'attribute_not_exists({})'.format(hash_attribute)
 
 
 def replicate_this(event):
@@ -74,7 +63,7 @@ def insert(body):
         response = ddb.put_item(
             TableName=dest_table,
             Item=newImage,
-            ConditionExpression='{} OR ((:ts > ts) OR (:ts = ts AND :wid > wid))'.format(id_not_exists_condition(dest_table)),
+            ConditionExpression='{} OR ((:ts > ts) OR (:ts = ts AND :wid > wid))'.format(id_not_exists_condition()),
             ExpressionAttributeValues={
                 ':ts': body_ts,
                 ':wid': body_wid
@@ -103,7 +92,7 @@ def modify(body):
         response = ddb.put_item(
             TableName=dest_table,
             Item=newImage,
-            ConditionExpression='{} OR ((:ts > ts) OR (:ts = ts AND :wid > wid))'.format(id_not_exists_condition(dest_table)),
+            ConditionExpression='{} OR ((:ts > ts) OR (:ts = ts AND :wid > wid))'.format(id_not_exists_condition()),
             ExpressionAttributeValues={
                 ':ts': body_ts,
                 ':wid': body_wid
@@ -130,7 +119,7 @@ def remove(body):
         response = ddb.delete_item(
             TableName=dest_table,
             Key=keys,
-            ConditionExpression='{} OR (:ts >= ts)'.format(id_not_exists_condition(dest_table)),
+            ConditionExpression='{} OR (:ts >= ts)'.format(id_not_exists_condition()),
             ExpressionAttributeValues={
                 ':ts': body_ts
             }

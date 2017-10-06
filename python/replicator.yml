@@ -16,6 +16,9 @@ Parameters:
   TableName:
     Type: String
     Description: Name of table generating stream events
+  KeyHashAttribute:
+    Type: String
+    Description: Hash/Partition key name for destination table
   DestinationTable:
     Type: String
     Description: Destination table
@@ -25,7 +28,7 @@ Parameters:
 
 
 Resources:
-  S2FQLambda:
+  ReplicatorLambda:
     Type: "AWS::Lambda::Function"
     Properties:
       Handler: Replicator.lambda_handler
@@ -34,13 +37,14 @@ Resources:
         S3Bucket: !Ref CodeBucketName
         S3Key: !Ref ZipFileName
       Runtime: "python2.7"
-      MemorySize: 1024
+      MemorySize: 512
       Timeout: 20
       Environment:
         Variables:
           DEST_TABLE: !Ref DestinationTable
           DEST_REGION: !Ref DestinationRegion
           STACK_NAME: !Ref AWS::StackName
+          HASH_ATTRIBUTE: !Ref KeyHashAttribute
 
  
   LambdaExecutionRole:
@@ -102,9 +106,9 @@ Resources:
   EventSourceMapping:
     Type: "AWS::Lambda::EventSourceMapping"
     Properties:
-      BatchSize: 25
+      BatchSize: 20
       Enabled: True
       EventSourceArn: !Ref StreamArn
-      FunctionName: !GetAtt S2FQLambda.Arn
+      FunctionName: !GetAtt ReplicatorLambda.Arn
       StartingPosition: TRIM_HORIZON
 
