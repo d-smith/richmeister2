@@ -33,7 +33,7 @@ class Inserter(TaskSet):
             }
         )
 
-        print response
+        print 'insert complete'
 
 class DataLoad(Locust):
     id = 0

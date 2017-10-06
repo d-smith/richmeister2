@@ -30,7 +30,8 @@ const allProcessed = (callback) => {
 
 const checkDone = (callback) => {
     processed += 1;
-    if(processed == numRecords) {
+    console.log('checkDone processed: ' + processed);
+    if(processed >= numRecords) {
         allProcessed(callback);
     }
 }
@@ -180,7 +181,9 @@ const doRemove = (record, callback) => {
 
 exports.handler = (event, context, callback) => {
 
+    processed = 0;
     numRecords = event.Records.length;
+    console.log('records to process: ' + numRecords);
 
     for (let record of event.Records) {
         console.log(event);
