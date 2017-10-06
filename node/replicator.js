@@ -143,14 +143,39 @@ const doModify = (record, callback) => {
         }
 
         checkDone(callback);
+    
     });
-
-    checkDone(callback);
 }
 
 const doRemove = (record, callback) => {
     console.log('replicate remove');
-    checkDone(callback);
+
+    const oldImage = record.dynamodb.OldImage;
+    const ts = oldImage.ts;
+    const keys = record.dynamodb.Keys;
+
+    const conditionExpression = `attribute_not_exists(${hashAttribute}) OR (:ts >= ts)`;
+    const expressionAttributeValues = {":ts":ts};
+
+    const params = {
+        TableName: destinationTable,
+        Key: keys,
+        ConditionExpression: conditionExpression,
+        ExpressionAttributeValues: expressionAttributeValues
+    };
+
+    dynamoDb.deleteItem(params, (error) => {
+        if (error) {
+            if(error.code == 'ConditionalCheckFailedException') {
+                console.log('Item not replicated due to ConditionalCheckFailedException')
+            } else {
+                console.error(error);
+            }
+        }
+
+        checkDone(callback);
+    });
+
 }
 
 exports.handler = (event, context, callback) => {
