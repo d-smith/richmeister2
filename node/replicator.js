@@ -113,8 +113,6 @@ const doInsert = (record, callback) => {
 
 const doModify = (record, callback) => {
     console.log('replicate modify');
-
-    console.log('replicate insert');
     console.log(JSON.stringify(record));
 
     const newImage = record.dynamodb.NewImage;
@@ -180,7 +178,6 @@ const doRemove = (record, callback) => {
 }
 
 exports.handler = (event, context, callback) => {
-
     processed = 0;
     numRecords = event.Records.length;
     console.log('records to process: ' + numRecords);
@@ -189,6 +186,4 @@ exports.handler = (event, context, callback) => {
         console.log(event);
         handleRecord(record,callback);
     }
-
-    
 }
