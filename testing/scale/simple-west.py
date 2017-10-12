@@ -2,7 +2,7 @@ from locust import TaskSet, Locust, task
 import boto3
 
 
-ddb_east = boto3.client('dynamodb', region_name='us-east-1')   
+ddb_west = boto3.client('dynamodb', region_name='us-west-2')   
 
 
 class Inserter(TaskSet):
@@ -12,11 +12,11 @@ class Inserter(TaskSet):
         DataLoad.id += 1
         print 'insert {}'.format(DataLoad.id)
 
-        response = ddb_east.put_item(
+        response = ddb_west.put_item(
             TableName='PKTestTable3',
             Item={
                 "Id": {
-                    "S": 'east - {}'.format(DataLoad.id)
+                    "S": 'west - {}'.format(DataLoad.id)
                 },
                 "ts": {
                     "N": str(10)
@@ -28,7 +28,7 @@ class Inserter(TaskSet):
                     "BOOL": True
                 },
                 "region": {
-                    "S":"from the east"
+                    "S":"from the west"
                 }
             }
         )
