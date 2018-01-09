@@ -1,5 +1,7 @@
 # Richmeister 2
 
+Note: obsoleted by global tables. So no more makin' copies for the Richmeister...
+
 Tastes great like the original Richmeister, but less filling.
 
 Richmeister 2 performs multi-region replication, but makes a different 
